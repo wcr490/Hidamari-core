@@ -20,16 +20,11 @@ all: compile run
 
 soc: compile_soc run_soc
 
-cache: compile_cache run_cache
-
 compile:
 	$(COMPILER) $(FLAGS) -o ./build/out $(SOURCES)
 
 compile_soc:
 	$(COMPILER) $(FLAGS) -o ./build/soc_out $(SOC_SOURCES)
-
-compile_cache:
-	$(COMPILER) $(FLAGS) -o ./build/cache_out $(CACHE_SOURCES)
 
 run:
 	$(SIMULATOR) -n ./build/out -vcd ./build/out.vcd
@@ -37,17 +32,11 @@ run:
 run_soc:
 	$(SIMULATOR) -n ./build/soc_out -vcd ./build/soc_out.vcd
 
-run_cache:
-	$(SIMULATOR) -n ./build/cache_out -vcd ./build/cache_out.vcd
-
 wave:
 	$(WAVEGUI) ./build/out.vcd
 
 wave_soc:
 	$(WAVEGUI) ./build/soc_out.vcd
-
-wave_cache:
-	$(WAVEGUI) ./build/cache_out.vcd
 
 clean:
 	rm -f ./build/*

@@ -1,7 +1,7 @@
 // FIXME
 `define ROM_SIZE 4096
 
-`define RAM_SIZE 16348
+`define RAM_SIZE 16384
 
 `define CACHE_WAY_NUM 4
 `define CACHE_LINE_NUM 64

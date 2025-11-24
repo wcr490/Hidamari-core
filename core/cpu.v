@@ -1,15 +1,17 @@
 module cpu (
     input clk,
     input rst,
-    
-    output wire[31: 0] cpu_sb_addr_out,
-    output wire cpu_sb_req_out,
-    output wire cpu_sb_wr_out,
-    output wire[31: 0] cpu_sb_wdata_out,
-    input wire cpu_sb_gnt_in,
-    input wire[31: 0] cpu_sb_read_data_in,
-    input wire cpu_sb_read_valid_in,
-    input wire cpu_sb_err_in
+
+    input wire[31: 0] instr_valid_in,
+    input wire[31: 0] instr_in,
+    output wire[31: 0] instr_addr_out,
+    output wire instr_addr_valid_out,
+
+    input wire cpu_mem_valid_in,
+    input wire[31: 0] cpu_mem_rdata_in,
+    output wire[31: 0] cpu_mem_wdata_out,
+    output wire[3: 0] cpu_mem_write_byte_en_out,
+    output wire[31: 0] cpu_mem_addr_out
 );
     wire[31: 0] jump_addr;
     wire jump_flag;
@@ -24,82 +26,25 @@ module cpu (
         .hold_flag_out(hold_flag)
     );
 
-
-
-    //--------BUS-CPU-IF-----------//
-    typedef enum logic[1: 0] {
-        IF_IDLE,
-        IF_REQ,
-        IF_WAIT
-    } if_state_t;
-    reg[1: 0] cur_if_state, next_if_state;
-    reg[31: 0] if_addr_reg;
+    // Need to be connected to i_ram
     reg[31: 0] if_instr_reg;
     reg if_valid_reg;
-    wire if_hold_flag;
-    
-    assign if_hold_flag = 
-        (cur_if_state != IF_IDLE) || 
-        (cur_if_state == IF_IDLE && !if_valid_reg) || 
-        (flush_ctrl_jump_flag);
-    
-        always @(posedge clk) begin
-            if (rst == 1'b0) begin
-                cur_if_state <= IF_IDLE;
-                if_addr_reg <= 32'h0;
-                if_instr_reg <= 32'h0;
-                if_valid_reg <= 1'b0;
-            end
-            else begin
-                cur_if_state <= next_if_state;
 
-                case (cur_if_state)
-                    IF_IDLE: begin
-                        if_valid_reg <= 1'b0;
-                    end
+    // Used to hold the pc increment
+    wire if_hold_flag = flush_ctrl_jump_flag;
 
-                    IF_REQ: begin
-                        if_valid_reg <= 1'b0;
-                        if_addr_reg <= instr_addr;
-                    end
-
-                    IF_WAIT: begin
-                        if (cpu_sb_read_valid_in) begin
-                            if_instr_reg <= cpu_sb_read_data_in;
-                            if_valid_reg <= 1'b1;
-                        end
-                    end
-                endcase
-            end
+    always @(posedge clk) begin
+        if (rst == 1'b0) begin
+            if_instr_reg <= 32'h0;
+            if_valid_reg <= 1'b0;
         end
-    
-        always @(*) begin
-            next_if_state = cur_if_state;
-            case (cur_if_state)
-                IF_IDLE: begin
-                    if (!flush_ctrl_jump_flag)
-                        next_if_state = IF_REQ;
-                end
-
-                IF_REQ: begin
-                    if (cpu_sb_gnt_in)
-                        next_if_state = IF_WAIT;
-                end
-
-                IF_WAIT: begin
-                    if (cpu_sb_read_valid_in)
-                        next_if_state = IF_IDLE;
-                end
-            endcase
+        else begin
+            if_valid_reg <= 1'b1;
         end
-    assign cpu_sb_addr_out = (cur_if_state == IF_REQ) ? if_addr_reg : 32'h0;
-    assign cpu_sb_req_out = (cur_if_state == IF_REQ);
-    assign cpu_sb_wr_out = 1'b0;
-    assign cpu_sb_wdata_out = 32'h0;
+    end
     
     wire[31: 0] instr = if_instr_reg;
     wire instr_valid = if_valid_reg;
-    //--------BUS-CPU-IF-----------//
 
     wire[31: 0] instr_addr;
     pc_reg pc_reg_inst(
