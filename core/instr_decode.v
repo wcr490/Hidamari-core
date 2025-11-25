@@ -102,6 +102,14 @@ module instr_decode (
                     id_jump_op1_out = id_instr_addr_in;
                     id_jump_op2_out = type_jal_imm;
                 end
+                `OP_TYPE_LOAD: begin
+                    id_op1_out = id_reg1_data_in;
+                    id_op2_out = type_imm_imm;
+                    id_write_addr_out = rd;
+                    id_wen_out = 1'b1;
+                end
+                `OP_TYPE_STORE: begin
+                end
                 default: begin
                 end
             endcase

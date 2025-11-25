@@ -84,6 +84,10 @@ module exec (
                 exec_jump_addr_out = jump_op1_add_op2;
                 exec_jump_flag_out = 1'b1;
             end
+            `OP_TYPE_LOAD: begin
+                exec_write_addr_out = exec_write_addr_in;
+                exec_wen_out = 1'b1;
+            end
             default: begin
 
             end

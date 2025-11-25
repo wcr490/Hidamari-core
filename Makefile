@@ -2,6 +2,8 @@ COMPILER = iverilog
 SIMULATOR = vvp
 WAVEGUI = gtkwave
 FLAGS = -Wall -g2012
+
+
 CORE_DIR = ./core
 BUS_DIR = ./bus
 PERIPHERAL_DIR = ./peripheral
@@ -10,7 +12,8 @@ TEST_FILE = ./test/cpu_tb.v
 SOC_TEST_FILE = ./test/soc_tb.v
 CACHE_TEST_FILE = ./test/cache_tb.v
 
-SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(SYSTEM_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") $(TEST_FILE)
+
+SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") $(TEST_FILE)
 SOC_SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(SYSTEM_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") $(SOC_TEST_FILE)
 CACHE_SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(SYSTEM_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") ./test/cache_tb.v
 # TESTBENCH = testbench/tb_top.v

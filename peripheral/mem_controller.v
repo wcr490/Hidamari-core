@@ -5,6 +5,10 @@ module mem_controller (
     input wire[31: 0] mc_addr_in,
     input wire[31: 0] mc_write_data_in,
     input wire[3: 0]  mc_write_byte_en_in,
+    /*
+    cs == 1 -> data
+    cs == 0 -> instr
+    */
     input wire cs,
 
     input wire mc_read_en_in,

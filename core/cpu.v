@@ -1,11 +1,14 @@
+`include "./core/core_defines.v"
+
 module cpu (
     input clk,
     input rst,
 
-    input wire[31: 0] instr_valid_in,
+    input wire instr_valid_in,
+    input wire instr_ready_in,
     input wire[31: 0] instr_in,
-    output wire[31: 0] instr_addr_out,
-    output wire instr_addr_valid_out,
+    output reg[31: 0] instr_addr_out,
+    output reg instr_addr_valid_out,
 
     input wire cpu_mem_valid_in,
     input wire[31: 0] cpu_mem_rdata_in,
@@ -26,27 +29,64 @@ module cpu (
         .hold_flag_out(hold_flag)
     );
 
+
+
+    reg [1:0] instr_state;
+    reg instr_ready;
+    localparam INSTR_IDLE = 2'b00;
+    localparam INSTR_REQUEST = 2'b01;
+    localparam INSTR_RESPONSE = 2'b10;
+
     // Need to be connected to i_ram
     reg[31: 0] if_instr_reg;
     reg if_valid_reg;
 
-    // Used to hold the pc increment
-    wire if_hold_flag = flush_ctrl_jump_flag;
-
-    always @(posedge clk) begin
-        if (rst == 1'b0) begin
-            if_instr_reg <= 32'h0;
-            if_valid_reg <= 1'b0;
-        end
-        else begin
-            if_valid_reg <= 1'b1;
-        end
-    end
-    
     wire[31: 0] instr = if_instr_reg;
     wire instr_valid = if_valid_reg;
-
     wire[31: 0] instr_addr;
+
+    // Used to hold the pc increment
+    wire if_hold_flag = flush_ctrl_jump_flag || !instr_ready;
+
+    always @(posedge clk) begin
+        if (!rst) begin
+            if_instr_reg <= 32'h0;
+            if_valid_reg <= 1'b0;
+            instr_state <= INSTR_IDLE;
+            instr_ready <= 1'b0;
+            instr_addr_valid_out <= 1'b0;
+            instr_addr_out <= `INSTR_NOP;
+        end
+        else begin
+            instr_addr_out <= instr_addr;
+            // if_valid_reg <= 1'b1;
+            case (instr_state)
+                INSTR_IDLE: begin
+                    instr_ready <= 1'b0;
+                    if (!flush_ctrl_jump_flag) begin
+                        instr_state <= INSTR_REQUEST;
+                    end
+                end
+                INSTR_REQUEST: begin
+                    instr_addr_valid_out <= 1'b1;
+                    if (instr_ready_in) begin
+                        instr_state <= INSTR_RESPONSE;
+                    end
+                end
+                INSTR_RESPONSE: begin
+                    if (instr_valid_in) begin
+                        if_instr_reg <= instr_in;
+                        if_valid_reg <= 1'b1;
+                        instr_ready <= 1'b1;
+                        instr_state <= INSTR_IDLE;
+                    end
+                end
+            endcase
+        end
+    end
+
+
+
     pc_reg pc_reg_inst(
         .clk(clk),
         .rst(rst),
