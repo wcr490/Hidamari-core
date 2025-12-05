@@ -16,7 +16,7 @@ module soc_tb (
         #30
         rst <= 1'b1;
         $readmemh("./test/addi_test.hex", soc_top_inst.mem_controller_inst.instr_ram.mem);
-        #500
+        #1000
         $finish;
     end
 

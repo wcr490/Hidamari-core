@@ -107,6 +107,19 @@ module instr_decode (
                     id_op2_out = type_imm_imm;
                     id_write_addr_out = rd;
                     id_wen_out = 1'b1;
+                    // case (func3)
+                    //     `FUNC3_LB: begin
+                    //     end
+                    //     `FUNC3_LH: begin
+                    //     end
+                    //     `FUNC3_LW: begin
+                    //     end
+                    //     `FUNC3_LBU: begin
+                    //     end
+                    //     `FUNC3_LHU: begin
+                    //     end
+                    //     default: 
+                    // endcase
                 end
                 `OP_TYPE_STORE: begin
                 end

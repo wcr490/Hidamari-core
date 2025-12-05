@@ -16,7 +16,15 @@ module exec (
     output reg[31: 0] exec_write_data_out,
     output reg[31: 0] exec_jump_addr_out,
     output reg exec_jump_flag_out,
-    output reg exec_wen_out
+    output reg exec_wen_out,
+
+    input reg exec_mem_valid_in,
+    input wire[31: 0] exec_mem_data_in,
+    output reg exec_read_mem_en_out,
+    output reg exec_write_mem_en_out,
+    output reg[31: 0] exec_mem_addr_out,
+    output reg[31: 0] exec_mem_data_out,
+    output wire[3: 0] exec_mem_data_byte_num_out
 );
     wire[6: 0] opcode = exec_instr_in[6: 0];
     wire[4: 0] rd = exec_instr_in[11: 7];
@@ -36,6 +44,10 @@ module exec (
         exec_wen_out = 1'b0;
         exec_jump_addr_out = 32'b0;
         exec_jump_flag_out = 1'b0;
+        exec_read_mem_en_out = 1'b0;
+        exec_write_mem_en_out = 1'b0;
+        exec_mem_addr_out = 32'b0;
+        exec_mem_data_out = 32'b0;
         case (opcode)
             `OP_TYPE_IMM: begin
                 case (func3)
@@ -85,8 +97,40 @@ module exec (
                 exec_jump_flag_out = 1'b1;
             end
             `OP_TYPE_LOAD: begin
-                exec_write_addr_out = exec_write_addr_in;
-                exec_wen_out = 1'b1;
+                if (exec_mem_valid_in) begin
+                    exec_write_addr_out = exec_write_addr_in;
+                    exec_write_data_out = exec_mem_data_in;
+                    exec_read_mem_en_out = 1'b0;
+                    exec_wen_out = 1'b1;
+                end
+                else begin
+                    exec_write_addr_out = exec_write_addr_in;
+                    exec_mem_addr_out = exec_op1_in + exec_op2_in;
+                    case (func3)
+                        `FUNC3_LB: begin
+                            exec_write_data_out = 
+                                {{24{exec_mem_data_in[7]}}, exec_mem_data_in[7: 0]};
+                        end
+                        `FUNC3_LH: begin
+                            exec_write_data_out = 
+                                {{16{exec_mem_data_in[15]}}, exec_mem_data_in[15: 0]};
+                        end
+                        `FUNC3_LW: begin
+                            exec_write_data_out = exec_mem_data_in;
+                        end
+                        `FUNC3_LBU: begin
+                            exec_write_data_out = 
+                                {24'b0, exec_mem_data_in[7: 0]};
+                        end
+                        `FUNC3_LHU: begin
+                            exec_write_data_out = 
+                                {16'b0, exec_mem_data_in[7: 0]};
+                        end
+                        default: begin
+                        end
+                    endcase
+                    exec_read_mem_en_out = 1'b1;
+                end
             end
             default: begin
 
