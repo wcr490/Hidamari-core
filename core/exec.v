@@ -24,7 +24,8 @@ module exec (
     output reg exec_write_mem_en_out,
     output reg[31: 0] exec_mem_addr_out,
     output reg[31: 0] exec_mem_data_out,
-    output wire[3: 0] exec_mem_data_byte_num_out
+    output wire[3: 0] exec_mem_data_byte_num_out,
+    output reg exec_hold_flag_out
 );
     wire[6: 0] opcode = exec_instr_in[6: 0];
     wire[4: 0] rd = exec_instr_in[11: 7];
@@ -48,6 +49,7 @@ module exec (
         exec_write_mem_en_out = 1'b0;
         exec_mem_addr_out = 32'b0;
         exec_mem_data_out = 32'b0;
+        exec_hold_flag_out = 1'b0;
         case (opcode)
             `OP_TYPE_IMM: begin
                 case (func3)
@@ -97,15 +99,18 @@ module exec (
                 exec_jump_flag_out = 1'b1;
             end
             `OP_TYPE_LOAD: begin
+                exec_mem_addr_out = exec_op1_in + exec_op2_in;
                 if (exec_mem_valid_in) begin
                     exec_write_addr_out = exec_write_addr_in;
                     exec_write_data_out = exec_mem_data_in;
                     exec_read_mem_en_out = 1'b0;
                     exec_wen_out = 1'b1;
+                    exec_hold_flag_out = 1'b0;
                 end
                 else begin
-                    exec_write_addr_out = exec_write_addr_in;
-                    exec_mem_addr_out = exec_op1_in + exec_op2_in;
+                    exec_hold_flag_out = 1'b1;
+                    // exec_write_addr_out = 5'b0;
+                    // exec_mem_addr_out = exec_op1_in + exec_op2_in;
                     case (func3)
                         `FUNC3_LB: begin
                             exec_write_data_out = 
@@ -127,6 +132,7 @@ module exec (
                                 {16'b0, exec_mem_data_in[7: 0]};
                         end
                         default: begin
+                            exec_write_data_out = 32'b0;
                         end
                     endcase
                     exec_read_mem_en_out = 1'b1;

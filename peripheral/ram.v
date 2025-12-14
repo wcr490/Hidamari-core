@@ -51,13 +51,13 @@ module ram (
 
     always @(*) begin
         if (!rst) begin
-            ready_out <= 1'b0;
+            ready_out = 1'b0;
             for (i = 0; i < `RAM_SIZE; i = i + 1) begin
-                mem[i] <= 32'b0;
+                mem[i] = 32'b0;
             end
         end
         else begin
-            ready_out <= ~busy;
+            ready_out = ~busy;
         end
     end
 

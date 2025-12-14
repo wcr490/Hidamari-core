@@ -1,3 +1,9 @@
+/*
+iverilog -Wall -g2012 -o ./build/ram_out ./peripheral/dual_port_mem_controller.v ./peripheral/ram.v ./test/dual_port_mem_tb.v 
+*/
+/*
+vvp -n ./build/ram_out -vcd ./build/ram_out.vcd
+*/
 `timescale 1ps/1ps
 
 module ram_tb (
