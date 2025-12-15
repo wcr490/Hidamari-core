@@ -10,6 +10,7 @@ module exec (
     input wire[31: 0] exec_op2_in,
     input wire[31: 0] exec_id_jump_op1_in,
     input wire[31: 0] exec_id_jump_op2_in,
+    input wire[31: 0] exec_mem_write_addr_offset_in,
     input wire exec_wen_in,
 
     output reg[4: 0] exec_write_addr_out,
@@ -24,8 +25,7 @@ module exec (
     output reg exec_write_mem_en_out,
     output reg[31: 0] exec_mem_addr_out,
     output reg[31: 0] exec_mem_data_out,
-    output wire[3: 0] exec_mem_data_byte_num_out,
-    output reg exec_hold_flag_out
+    output reg[3: 0] exec_mem_data_byte_num_out
 );
     wire[6: 0] opcode = exec_instr_in[6: 0];
     wire[4: 0] rd = exec_instr_in[11: 7];
@@ -49,7 +49,7 @@ module exec (
         exec_write_mem_en_out = 1'b0;
         exec_mem_addr_out = 32'b0;
         exec_mem_data_out = 32'b0;
-        exec_hold_flag_out = 1'b0;
+        exec_mem_data_byte_num_out = 4'b0;
         case (opcode)
             `OP_TYPE_IMM: begin
                 case (func3)
@@ -105,10 +105,8 @@ module exec (
                     exec_write_data_out = exec_mem_data_in;
                     exec_read_mem_en_out = 1'b0;
                     exec_wen_out = 1'b1;
-                    exec_hold_flag_out = 1'b0;
                 end
                 else begin
-                    exec_hold_flag_out = 1'b1;
                     // exec_write_addr_out = 5'b0;
                     // exec_mem_addr_out = exec_op1_in + exec_op2_in;
                     case (func3)
@@ -129,7 +127,7 @@ module exec (
                         end
                         `FUNC3_LHU: begin
                             exec_write_data_out = 
-                                {16'b0, exec_mem_data_in[7: 0]};
+                                {16'b0, exec_mem_data_in[15: 0]};
                         end
                         default: begin
                             exec_write_data_out = 32'b0;
@@ -137,6 +135,24 @@ module exec (
                     endcase
                     exec_read_mem_en_out = 1'b1;
                 end
+            end
+            `OP_TYPE_STORE: begin
+                exec_mem_addr_out = exec_op1_in + exec_mem_write_addr_offset_in;
+                exec_mem_data_out = exec_op2_in;
+                exec_write_mem_en_out = 1'b1;
+                case (func3)
+                    `FUNC3_SB: begin
+                        exec_mem_data_byte_num_out = 4'b0001;
+                    end
+                    `FUNC3_SH: begin
+                        exec_mem_data_byte_num_out = 4'b0011;
+                    end
+                    `FUNC3_SW: begin
+                        exec_mem_data_byte_num_out = 4'b1111;
+                    end
+                    default: begin
+                    end
+                endcase
             end
             default: begin
 

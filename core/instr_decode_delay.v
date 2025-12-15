@@ -13,6 +13,7 @@ module instr_decode_delay (
     input wire[31: 0] idd_op2_in,
     input wire[31: 0] idd_jump_op1_in,
     input wire[31: 0] idd_jump_op2_in,
+    input wire[31: 0] idd_mem_write_addr_offset_in,
     input wire idd_wen_in,
 
     output wire[31: 0] idd_instr_addr_out,
@@ -24,6 +25,7 @@ module instr_decode_delay (
     output wire[31: 0] idd_op2_out,
     output wire[31: 0] idd_jump_op1_out,
     output wire[31: 0] idd_jump_op2_out,
+    output wire[31: 0] idd_mem_write_addr_offset_out,
     output wire idd_wen_out
 );
     dff_delay_keep#(.DATA_WIDTH(32)) dff_delay_set_instr_addr(
@@ -97,6 +99,14 @@ module instr_decode_delay (
         .dff_delay_set_data_in(idd_jump_op2_in),
         .dff_delay_set_data_rst_value(32'b0),
         .dff_delay_set_data_out(idd_jump_op2_out)
+        );
+    dff_delay_keep#(.DATA_WIDTH(32)) dff_delay_set_mem_write_addr_offset(
+        .clk(clk), 
+        .rst(rst), 
+        .dff_delay_set_hold_flag_in(idd_jump_flag_in),
+        .dff_delay_set_data_in(idd_mem_write_addr_offset_in),
+        .dff_delay_set_data_rst_value(32'b0),
+        .dff_delay_set_data_out(idd_mem_write_addr_offset_out)
         );
     dff_delay_keep#(.DATA_WIDTH(1)) dff_delay_set_wen(
         .clk(clk), 

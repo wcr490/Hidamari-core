@@ -5,7 +5,7 @@ FLAGS = -Wall -g2012
 
 
 CORE_DIR = ./core
-BUS_DIR = ./bus
+# BUS_DIR = ./bus
 PERIPHERAL_DIR = ./peripheral
 SYSTEM_DIR = ./system
 TEST_FILE = ./test/cpu_tb.v
@@ -14,7 +14,7 @@ CACHE_TEST_FILE = ./test/cache_tb.v
 
 
 SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") $(TEST_FILE)
-SOC_SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(SYSTEM_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") $(SOC_TEST_FILE)
+SOC_SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(SYSTEM_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") $(shell find ./test -name "soc_tb.v")
 CACHE_SOURCES = $(shell find $(CORE_DIR) -name "*.v") $(shell find $(BUS_DIR) -name "*.v") $(shell find $(SYSTEM_DIR) -name "*.v") $(shell find $(PERIPHERAL_DIR) -name "*.v") ./test/cache_tb.v
 # TESTBENCH = testbench/tb_top.v
 # OUTPUT = sim/simulation

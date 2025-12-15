@@ -100,6 +100,7 @@ module cpu (
     wire[31: 0] id_op2;
     wire[31: 0] id_jump_op1;
     wire[31: 0] id_jump_op2;
+    wire[31: 0] id_mem_write_addr_offset;
     wire id_wen;
     instr_decode instr_decode_inst(
         .id_instr_addr_in(ifd_instr_addr),
@@ -117,6 +118,7 @@ module cpu (
         .id_op2_out(id_op2),
         .id_jump_op1_out(id_jump_op1),
         .id_jump_op2_out(id_jump_op2),
+        .id_mem_write_addr_offset_out(id_mem_write_addr_offset),
         .id_wen_out(id_wen)
     );
 
@@ -129,6 +131,7 @@ module cpu (
     wire[31: 0] idd_op2;
     wire[31: 0] idd_jump_op1;
     wire[31: 0] idd_jump_op2;
+    wire[31: 0] idd_mem_write_addr_offset;
     wire idd_wen;
     instr_decode_delay instr_decode_delay_inst(
         .clk(clk),
@@ -145,6 +148,7 @@ module cpu (
         .idd_op2_in(id_op2),
         .idd_jump_op1_in(id_jump_op1),
         .idd_jump_op2_in(id_jump_op2),
+        .idd_mem_write_addr_offset_in(id_mem_write_addr_offset),
         .idd_wen_in(id_wen),
 
         .idd_instr_addr_out(idd_instr_addr),
@@ -156,6 +160,7 @@ module cpu (
         .idd_op2_out(idd_op2),
         .idd_jump_op1_out(idd_jump_op1),
         .idd_jump_op2_out(idd_jump_op2),
+        .idd_mem_write_addr_offset_out(idd_mem_write_addr_offset),
         .idd_wen_out(idd_wen)
     );
 
@@ -188,6 +193,7 @@ module cpu (
         .exec_write_data_out(exec_write_data),
         .exec_jump_addr_out(jump_addr),
         .exec_jump_flag_out(jump_flag),
+        .exec_mem_write_addr_offset_in(idd_mem_write_addr_offset),
         .exec_wen_out(exec_wen),
 
         .exec_mem_valid_in(exec_mem_valid),
@@ -195,7 +201,8 @@ module cpu (
         .exec_read_mem_en_out(exec_read_mem_en),
         .exec_write_mem_en_out(exec_write_mem_en),
         .exec_mem_addr_out(exec_mem_addr),
-        .exec_mem_data_out(exec_mem_data)
+        .exec_mem_data_out(exec_mem_data),
+        .exec_mem_data_byte_num_out(cpu_mem_write_byte_en_out)
     );
 
     regs regs_inst (
@@ -269,6 +276,9 @@ module cpu (
                     exec_mem_valid_reg <= 1'b0;
                     data_mem_ready <= 1'b0;
                     exec_data_mem_valid_reg <= 1'b0;
+                    // if (exec_read_mem_en) begin
+                    //     data_mem_state <= DATA_MEM_REQUEST;
+                    // end
                     if (exec_read_mem_en || exec_write_mem_en) begin
                         data_mem_state <= DATA_MEM_REQUEST;
                     end
@@ -280,7 +290,7 @@ module cpu (
                     end
                 end
                 DATA_MEM_RESPONSE: begin
-                    if (cpu_mem_valid_in) begin
+                    if (cpu_mem_valid_in || exec_write_mem_en) begin
                         exec_mem_valid_reg <= 1'b1;
                         data_mem_ready <= 1'b1;
                         exec_data_mem_valid_reg <= 1'b1;

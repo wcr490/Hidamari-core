@@ -17,6 +17,7 @@ module instr_decode (
     output reg[31: 0] id_op2_out,
     output reg[31: 0] id_jump_op1_out,
     output reg[31: 0] id_jump_op2_out,
+    output reg[31: 0] id_mem_write_addr_offset_out,
     output reg id_wen_out
 );
     wire[6: 0] opcode = id_instr_in[6: 0];
@@ -33,6 +34,8 @@ module instr_decode (
         {{12{id_instr_in[31]}}, id_instr_in[19:12], id_instr_in[20], id_instr_in[30:21], 1'b0};
     wire[31: 0] type_lui_imm_shifted = 
         {{id_instr_in[31:12]}, 12'b0};
+    wire[31: 0] type_store_imm = 
+        {{21{id_instr_in[31]}}, id_instr_in[30: 25], id_instr_in[11: 7]};
 
     always @(*) begin
         id_instr_addr_out = id_instr_addr_in;
@@ -45,6 +48,7 @@ module instr_decode (
         id_op2_out = 32'b0;
         id_jump_op1_out = 32'b0;
         id_jump_op2_out = 32'b0;
+        id_mem_write_addr_offset_out = 32'b0;
         id_wen_out = 1'b0;
 
         // if (!id_instr_valid_in) begin
@@ -122,6 +126,11 @@ module instr_decode (
                     // endcase
                 end
                 `OP_TYPE_STORE: begin
+                    id_reg1_addr_out = reg1_addr;
+                    id_reg2_addr_out = reg2_addr;
+                    id_op1_out = id_reg1_data_in;
+                    id_op2_out = id_reg2_data_in;
+                    id_mem_write_addr_offset_out = type_store_imm;
                 end
                 default: begin
                 end
