@@ -47,9 +47,9 @@ module instr_decode (
         id_jump_op2_out = 32'b0;
         id_wen_out = 1'b0;
 
-        if (!id_instr_valid_in) begin
-        end
-        else begin
+        // if (!id_instr_valid_in) begin
+        // end
+        // else begin
             case (opcode)
                 `OP_TYPE_IMM: begin
                     case (func3)
@@ -127,5 +127,5 @@ module instr_decode (
                 end
             endcase
         end
-    end
+    // end
 endmodule

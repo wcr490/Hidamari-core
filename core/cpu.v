@@ -306,5 +306,5 @@ module cpu (
     assign if_hold_flag = flush_ctrl_jump_flag
         || !instr_ready
         || (data_mem_state != DATA_MEM_IDLE);
-    assign instr_valid = if_valid_reg && data_mem_state == DATA_MEM_IDLE;
+    assign instr_valid = if_valid_reg;
 endmodule
