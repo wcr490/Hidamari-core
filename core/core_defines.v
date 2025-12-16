@@ -14,7 +14,6 @@
 `define FUNC3_SLLI  3'b001
 `define FUNC3_SLTI  3'b010
 `define FUNC3_SLTIU 3'b011
-`define FUNC3_ADDI  3'b000
 `define FUNC3_XORI  3'b100
 `define FUNC3_SRLI  3'b101
 `define FUNC3_SRAI  3'b101

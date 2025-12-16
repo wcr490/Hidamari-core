@@ -15,9 +15,9 @@ module soc_tb (
 
         #30
         rst <= 1'b1;
-        $readmemh("./test/load_test.hex", soc_top_inst.mem_controller_inst.instr_ram.mem);
-        $readmemh("./test/load_store_ram_test.hex", soc_top_inst.mem_controller_inst.data_ram.mem);
-        #2000
+        $readmemh("./test/beq_test.hex", soc_top_inst.mem_controller_inst.instr_ram.mem);
+        // $readmemh("./test/load_store_ram_test.hex", soc_top_inst.mem_controller_inst.data_ram.mem);
+        #1500
         $finish;
     end
 

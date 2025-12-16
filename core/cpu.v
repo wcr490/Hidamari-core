@@ -82,7 +82,7 @@ module cpu (
     instr_fetch_delay instr_fetch_delay_inst(
         .clk(clk),
         .rst(rst),
-        .ifd_jump_flag_in(if_hold_flag),
+        .ifd_jump_flag_in(flush_ctrl_jump_flag),
         .ifd_instr_addr_in(instr_addr),
         .ifd_instr_in(instr),
         .ifd_instr_valid_in(instr_valid),
@@ -232,9 +232,9 @@ module cpu (
             // if_valid_reg <= 1'b1;
             case (instr_state)
                 INSTR_IDLE: begin
-                    if (!flush_ctrl_jump_flag) begin
-                        instr_state <= INSTR_REQUEST;
-                    end
+                    // if (!flush_ctrl_jump_flag) begin
+                    instr_state <= INSTR_REQUEST;
+                    // end
                 end
                 INSTR_REQUEST: begin
                     instr_addr_valid_out <= 1'b1;
@@ -313,8 +313,8 @@ module cpu (
 
 
     // Used to hold the pc increment
-    assign if_hold_flag = flush_ctrl_jump_flag
-        || !instr_ready
-        || (data_mem_state != DATA_MEM_IDLE);
+    assign if_hold_flag =
+            (!instr_ready)
+        ||  (data_mem_state != DATA_MEM_IDLE);
     assign instr_valid = if_valid_reg;
 endmodule

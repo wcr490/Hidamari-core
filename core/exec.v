@@ -66,7 +66,7 @@ module exec (
                 case (func3)
                     `FUNC3_BEQ: begin
                         if (op1_eq_op2) begin
-                            exec_jump_addr_out = jump_op1_add_op2;
+                            exec_jump_addr_out = jump_op1_add_op2 - 4;
                             exec_jump_flag_out = 1'b1;
                         end else begin
                             exec_jump_addr_out = 32'b0;
