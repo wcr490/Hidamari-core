@@ -13,7 +13,7 @@ module instr_fetch_delay (
     output  wire[31: 0]         ifd_instr_out,
     output  wire             ifd_instr_valid_out
 );
-    dff_delay_keep#(.DATA_WIDTH(32)) dff_delay_keep_addr(
+    dff_delay_set#(.DATA_WIDTH(32)) dff_delay_keep_addr(
         .clk(clk), 
         .rst(rst), 
         .dff_delay_set_hold_flag_in(ifd_jump_flag_in),

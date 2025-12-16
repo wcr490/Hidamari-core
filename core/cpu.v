@@ -28,6 +28,8 @@ module cpu (
 
     wire if_hold_flag;
     flush_ctrl flush_ctrl_inst(
+        .clk(clk),
+        .rst(rst),
         .fc_jump_flag_in(jump_flag),
         .fc_jump_addr_in(jump_addr),
         .fc_jump_flag_out(flush_ctrl_jump_flag),
@@ -137,7 +139,7 @@ module cpu (
         .clk(clk),
         .rst(rst),
 
-        .idd_jump_flag_in(if_hold_flag),
+        .idd_jump_flag_in(flush_ctrl_jump_flag),
 
         .idd_instr_addr_in(id_instr_addr),
         .idd_instr_in(id_instr),
