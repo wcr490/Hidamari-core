@@ -10,11 +10,20 @@ vvp -n ./build/cache_out -vcd ./build/cache_out.vcd
 module cache_tb (
 );
     reg clk, rst;
-    reg wen, len, dirty, hit;
+    reg wen, len;
+    wire dirty, hit;
     reg[1: 0] byte_en;
-    reg[31: 0] addr, wdata, rdata;
+    reg[31: 0] addr, wdata;
+    wire[31: 0] rdata;
     reg[16*8 - 1: 0] ldata;
     always #10 clk = ~clk;
+    
+    // Include the cache modules
+    `define CACHE_LINE_NUM 64
+    `define CACHE_LINE_SIZE 16
+    `define CACHE_LINE_BIT_NUM (`CACHE_LINE_SIZE * 8)
+    `define CACHE_WAY_NUM 64
+
     cache_way cache_way_inst(
         .clk                                     (clk),
         .rst                                     (rst),
@@ -31,8 +40,9 @@ module cache_tb (
         .cw_hit_out                              (hit) 
     );
 
-    reg ren, ready_out, cs_dirty, cs_hit, begin_load;
-    reg[31: 0] cs_rdata;
+    reg ren, begin_load;
+    wire ready_out, cs_dirty, cs_hit;
+    wire[31: 0] cs_rdata;
     cache_set cache_set_inst (
         .clk                (clk),
         .rst                (rst),
@@ -82,6 +92,17 @@ module cache_tb (
         ren <= 1'b1;
         wen <= 1'b0;
         addr <= 32'hfff11118;
+        #50
+        ren <= 1'b0;
+        len <= 1'b1;
+        begin_load <= 1'b1;
+        ldata <= 128'hffffffff_00000000_ffffffff_00000000;
+        addr <= 32'haaaa0000;
+        #50
+        ren <= 1'b1;
+        len <= 1'b0;
+        begin_load <= 1'b0;
+        addr <= 32'haaaa0004;
         #100
         $finish;
     end

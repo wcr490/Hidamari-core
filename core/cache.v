@@ -23,8 +23,8 @@ module cache_way (
     
     output wire[31: 0] cw_rdata_out,
     output wire[`CACHE_LINE_BIT_NUM - 1: 0] cw_wbdata_out,
-    output reg cw_dirty_out,
-    output reg cw_hit_out
+    output wire cw_dirty_out,
+    output wire cw_hit_out
 );
     reg[`CACHE_LINE_BIT_NUM - 1: 0] data[`CACHE_LINE_NUM - 1: 0];
     reg[21: 0] tags[`CACHE_LINE_NUM - 1: 0];
@@ -37,7 +37,7 @@ module cache_way (
     assign cw_hit_out = (valid[index] && (tags[index] == tag)) ? 1'b1 : 1'b0;
     assign cw_dirty_out = dirty[index];
     assign cw_rdata_out = (cs && cw_hit_out) ? 
-            (cw_byte_en_in == 2'b01 ? ({24'h0, data[index][offset*8 +: 8]})       : 
+            (cw_byte_en_in == 2'b01 ? ({24'h0, data[index][offset*8 +: 8]})    : 
                 (cw_byte_en_in == 2'b10 ? {16'h0, data[index][offset*8 +: 16]} : 
                 {data[index][offset*8 +: 32]})
             )
@@ -92,10 +92,10 @@ module cache_set (
     input wire cs_load_en,
     input wire begin_load,
     
-    output reg[31: 0] cs_rdata_out,
+    output wire[31: 0] cs_rdata_out,
     output wire[`CACHE_LINE_BIT_NUM - 1: 0] cs_wbdata_out,
-    output reg cs_dirty_out,
-    output reg cs_hit_out,
+    output wire cs_dirty_out,
+    output wire cs_hit_out,
 
     output reg cs_ready_out
 );
@@ -105,11 +105,10 @@ module cache_set (
     localparam CACHE_IDLE = 3'b000, CACHE_SELECT = 3'b001, CACHE_LOAD = 3'b010;
     localparam DEPTH = $clog2(`CACHE_WAY_NUM);
     reg[2: 0] state, next_state;
-    wire[31: 0] way_rdata[`CACHE_WAY_NUM - 1: 0];
     wire[`CACHE_LINE_BIT_NUM - 1: 0] way_wbdata[`CACHE_WAY_NUM - 1: 0];
     reg[`CACHE_WAY_NUM - 1: 0] way_cs[`CACHE_LINE_NUM - 1: 0];
-    reg[`CACHE_WAY_NUM - 1: 0] way_hit;
-    reg[`CACHE_WAY_NUM - 1: 0] way_dirty;
+    wire[`CACHE_WAY_NUM - 1: 0] way_hit;
+    wire[`CACHE_WAY_NUM - 1: 0] way_dirty;
     reg[`CACHE_WAY_NUM - 1 - 1: 0] plru_tree;
     reg[DEPTH - 1: 0] replace_idx;
 
@@ -126,7 +125,7 @@ module cache_set (
                 .cs                 (way_cs[index][cw_i]),
                 .cw_write_en        (cs_write_en),
                 .cw_load_en         (begin_load),
-                .cw_rdata_out       (way_rdata[cw_i]),
+                .cw_rdata_out       (cs_rdata_out),
                 .cw_wbdata_out      (way_wbdata[cw_i]),
                 .cw_dirty_out       (way_dirty[cw_i]),
                 .cw_hit_out         (way_hit[cw_i]) 
@@ -153,7 +152,9 @@ module cache_set (
             replace_idx = {(DEPTH){1'b0}};
             next_state = CACHE_IDLE;
             cs_ready_out = 1'b0;
-            cs_rdata_out = 32'b0;
+            // cs_rdata_out is driven by cache_way modules through three-state bus
+            // cs_dirty_out is driven by cache_way modules
+            // cs_hit_out is driven by cache_way modules
         end
         else begin
             case (state)
@@ -170,10 +171,10 @@ module cache_set (
                 CACHE_SELECT: begin
                     if (cs_load_en) begin
                         way_cs[index][replace_idx] = 1'b1;
-                        cs_dirty_out = way_dirty[replace_idx];
                         next_state = CACHE_LOAD;
                     end
                     else begin
+                        update_hit();
                         next_state = CACHE_IDLE;
                     end
                     cs_ready_out = 1'b1;
@@ -198,11 +199,12 @@ module cache_set (
     task update_hit();
         if (cs_read_en || cs_write_en) begin
             if (|way_hit) begin
-                cs_hit_out = 1'b1;
+                // cs_hit_out is now driven by cache_way modules directly
+                // cs_dirty_out is now driven by cache_way modules directly
+                // cs_rdata_out is now driven by cache_way modules directly through three-state bus
                 for (i = 0; i < `CACHE_WAY_NUM; i = i + 1) begin
                     if (way_hit[i]) begin
                         plru_ptr = 0;
-                        cs_rdata_out = way_rdata[i];
                         for (cur_dep = DEPTH - 1; cur_dep >= 0; cur_dep = cur_dep - 1) begin
                             plru_tree[plru_ptr] = i[cur_dep];
                             if (i[cur_dep]) begin
